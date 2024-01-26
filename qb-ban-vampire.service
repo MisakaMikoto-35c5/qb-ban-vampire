@@ -1,0 +1,10 @@
+[Unit]
+Description=qBittorrent Vampire Hunter Service
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /home/<replace to your username>/qb-ban-vampire/qb-ban-vampire.py
+WorkingDirectory=/home/<replace to your username>/qb-ban-vampire
+
+[Install]
+WantedBy=default.target

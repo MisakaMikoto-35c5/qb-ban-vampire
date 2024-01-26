@@ -1,0 +1,16 @@
+{
+    "api_prefix": "http://127.0.1.1:4514",
+    "api_username": "admin",
+    "api_password": "yjsnpi",
+    "basic_auth": {
+        "username": null,
+        "password": null
+    },
+    "interval_seconds": 3,
+    "ban_seconds": 3600,
+    "ban_xunlei": true,
+    "ban_player": true,
+    "ban_others": true,
+    "ban_without_ratio_check": true,
+    "all_client_ratio_check": true
+}
