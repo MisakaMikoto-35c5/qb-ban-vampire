@@ -320,10 +320,10 @@ class VampireHunter:
                 if current.Uploaded == 0:
                     continue
                 logging.debug(f'[{current.IP}:{current.Client}] Current: Upload {current.Uploaded}, Progress {current.Progress}, Previous: Upload {previous.Uploaded}, Progress {previous.Progress}, Initial: Upload {initial.Uploaded}, Progress {initial.Progress}')
-                if current.Progress == 0 and ( current.Uploaded > 10000000):
-                    logging.info(f'[{current.IP}:{current.Client}] Detected strange client, Current Progress: {current.Progress}, Uploaded: {current.Uploaded}.')
-                    return True
-                if (current.Progress - initial.Progress) <= 0 and ((current.Uploaded - initial.Uploaded) > 10000000):
+                #if current.Progress == 0 and current.Uploaded > 10000000:
+                #    logging.info(f'[{current.IP}:{current.Client}] Detected strange client, Current Progress: {current.Progress}, Uploaded: {current.Uploaded}.')
+                #    return True
+                if (current.Progress - initial.Progress) <= 0 and (current.Uploaded - initial.Uploaded) > 10000000:
                     logging.info(f'[{current.IP}:{current.Client}] Detected strange client, Current Progress: {current.Progress}, Uploaded: {current.Uploaded}, Previous: Progress {previous.Progress}, Upload {previous.Uploaded}, Initial: Progress {initial.Progress}, Upload {initial.Uploaded}.')
                     return True
             return False
