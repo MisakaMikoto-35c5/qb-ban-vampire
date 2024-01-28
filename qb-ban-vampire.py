@@ -332,6 +332,9 @@ class VampireHunter:
         peers_count = 0
         for ip, peer in peers.items():
             peers_count += 1
+            # 不检测没有 UA 的 peer，可能是连接没建立
+            if peer.Client == '':
+                continue
             is_target_client = check_peer_client(peer)
             # 不检查分享率及下载进度直接屏蔽
             if self.BAN_WITHOUT_RATIO_CHECK and is_target_client:
