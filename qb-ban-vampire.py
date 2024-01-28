@@ -201,15 +201,21 @@ class VampireHunter:
     def __init__(self):
         self.load_config()
         self.API_FULL = f'{self.API_PREFIX}{self.API_SUFFIX}'
-        self.login_status = self.SESSION.post(
+        self.__peers_info = QbTorrentPeersInfo(self.API_FULL, self.SESSION, self.get_basicauth())
+
+    def login(self):
+        login_status = self.SESSION.post(
             f'{self.API_FULL}/auth/login',
             data={
                 'username': self.API_USERNAME,
                 'password': self.API_PASSWORD
             }
         ).text
-        logging.warning(f'Login status: {self.login_status}')
-        self.__peers_info = QbTorrentPeersInfo(self.API_FULL, self.SESSION, self.get_basicauth())
+        logging.warning(f'Login status: {login_status}')
+        if 'Fails' in self.login_status:
+            logging.warning('Please check login credentials.')
+            return False
+        return True
 
     def load_config(self):
         self.config = ConfigManager()
@@ -314,10 +320,10 @@ class VampireHunter:
                 if current.Uploaded == 0:
                     continue
                 logging.debug(f'[{current.IP}:{current.Client}] Current: Upload {current.Uploaded}, Progress {current.Progress}, Previous: Upload {previous.Uploaded}, Progress {previous.Progress}, Initial: Upload {initial.Uploaded}, Progress {initial.Progress}')
-                if current.Progress == 0 and current.Uploaded > (current.TorrentSize * 0.001) and current.Uploaded > 10000:
+                if current.Progress == 0 and ( current.Uploaded > 10000000):
                     logging.info(f'[{current.IP}:{current.Client}] Detected strange client, Current Progress: {current.Progress}, Uploaded: {current.Uploaded}.')
                     return True
-                if (current.Progress - initial.Progress) <= 0 and (current.Uploaded - initial.Uploaded) > (current.TorrentSize * 0.001):
+                if (current.Progress - initial.Progress) <= 0 and ((current.Uploaded - initial.Uploaded) > 10000000):
                     logging.info(f'[{current.IP}:{current.Client}] Detected strange client, Current Progress: {current.Progress}, Uploaded: {current.Uploaded}, Previous: Progress {previous.Progress}, Upload {previous.Uploaded}, Initial: Progress {initial.Progress}, Upload {initial.Uploaded}.')
                     return True
             return False
@@ -350,11 +356,30 @@ class VampireHunter:
         self.client_history_cleanup()
     
     def start(self):
-        if 'Fails' in self.login_status:
-            logging.warning('Please check login credentials.')
-            return
+        fail_count = 0
         while True:
-            self.do_once_banip()
+            try:
+                login_result = self.login()
+                fail_count = 0
+            except requests.exceptions.ConnectionError:
+                fail_count += 1
+                wait_sec = self.INTERVAL_SECONDS * fail_count
+                logging.error(f'Network issue occur, wait {wait_sec} second(s) to retry.')
+                time.sleep(wait_sec)
+                continue
+            if login_result:
+                break
+            else:
+                return
+        while True:
+            try:
+                self.do_once_banip()
+                fail_count = 0
+            except requests.exceptions.ConnectionError:
+                fail_count += 1
+                wait_sec = self.INTERVAL_SECONDS * fail_count
+                logging.error(f'Network issue occur, wait {wait_sec} second(s) to retry.')
+                time.sleep(wait_sec)
             time.sleep(self.INTERVAL_SECONDS)
 
 
