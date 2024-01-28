@@ -212,7 +212,7 @@ class VampireHunter:
             }
         ).text
         logging.warning(f'Login status: {login_status}')
-        if 'Fails' in self.login_status:
+        if 'Fails' in login_status:
             logging.warning('Please check login credentials.')
             return False
         return True
