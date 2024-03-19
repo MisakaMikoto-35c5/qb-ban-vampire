@@ -36,7 +36,8 @@ REGX_PLAYER = re.compile('''
         TB            | # Torch (TB)
         UW            | # uTorrent Web (UW)
         VG            | # Vagaa (VG) [Dead?]
-        XF              # Xfplay (XF)
+        XF            | # Xfplay (XF)
+        StellarPlayer   # StellarPlayer.com
     )
 )
 ''', re.X)
