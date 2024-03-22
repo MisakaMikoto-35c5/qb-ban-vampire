@@ -30,14 +30,14 @@ REGX_PLAYER = re.compile('''
     [Tt]orc           | # Torch (TB)
     [Vv]ag            | # Vagaa (VG) [Dead?]
     [Xx]fp            | # Xfplay (XF)
+    StellarPlayer     | # StellarPlayer.com
     Unknown\s(?:
         DL            | # DanDan/DLBT (DL)
         QVO           | # Qvod (QVOD) [Dead]
         TB            | # Torch (TB)
         UW            | # uTorrent Web (UW)
         VG            | # Vagaa (VG) [Dead?]
-        XF            | # Xfplay (XF)
-        StellarPlayer   # StellarPlayer.com
+        XF              # Xfplay (XF)
     )
 )
 ''', re.X)
@@ -48,6 +48,8 @@ REGX_OTHERS = re.compile('''
     .+?ransp          | # Net Transport (NX) - need more infomation
     [Qq]{2}           | # QQ (QD) [Dead?]
     [Tt]uo            | # TuoTu (TT) [Dead?]
+    [Tt]uo            | # TuoTu (TT) [Dead?]
+    dt/torrent/       | # Strange Client (Network Traffic Consumer)
     Unknown\s(?:
         BN            | # Baidu (BN) [Dead?]
         FG            | # FlashGet (FG)
