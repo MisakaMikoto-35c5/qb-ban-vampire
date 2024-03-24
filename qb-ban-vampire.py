@@ -308,6 +308,7 @@ class VampireHunter:
             # 屏蔽野鸡客户端
             if self.BAN_OTHERS and REGX_OTHERS.search(client_string):
                 return True
+            # 屏蔽自定义的客户端
             for custom in self.BAN_CUSTOMS:
                 if re.search(custom, client_string):
                     return True
