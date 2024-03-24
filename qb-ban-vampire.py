@@ -238,7 +238,7 @@ class VampireHunter:
         self.BAN_XUNLEI = self.config.get('ban_xunlei')
         self.BAN_PLAYER = self.config.get('ban_player')
         self.BAN_OTHERS = self.config.get('ban_others')
-        self.BAN_CUSTOMS = self.config.get('ban_customs')
+        self.BAN_CUSTOMS = [re.compile(it) for it in self.config.get('ban_customs')]
         self.BAN_WITHOUT_RATIO_CHECK = self.config.get('ban_without_ratio_check')
         self.ALL_CLIENT_RATIO_CHECK = self.config.get('all_client_ratio_check')
 
