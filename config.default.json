@@ -1,17 +1,3 @@
-# qBittorrent Ban Vampire
-
-改自 [https://gist.github.com/Sg4Dylan/cb2...](https://gist.github.com/Sg4Dylan/cb2c1d0ddb4559c2c46511de31ca3251)
-
-## Key Features
-
-- 使用 qBittorrent Web API，支持原版 qBittorrent
-- 改进的客户端行为检测
-- 支持对所有客户端进行无关 User Agent 的行为检查
-- 配置改到配置文件里面，可以通过 `git pull` 一键更新
-
-## 配置文件说明
-
-```json
 {
     // API 地址，也可以说是 qBittorrent Web UI 界面的地址
     "api_prefix": "http://127.0.1.1:4514",
@@ -41,6 +27,3 @@
     // 是否对其他所有客户端都进行行为检测
     "all_client_ratio_check": true
 }
-```
-
-配置文件只支持`//`开头的注释，请拿 `config.default.json` 改。放到在工作目录下，且将文件命名成 `config.json`。
