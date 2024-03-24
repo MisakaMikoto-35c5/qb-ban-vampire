@@ -50,6 +50,7 @@ REGX_OTHERS = re.compile('''
     [Tt]uo            | # TuoTu (TT) [Dead?]
     [Tt]uo            | # TuoTu (TT) [Dead?]
     dt/torrent/       | # Strange Client (Network Traffic Consumer)
+    Taipei            | # Taipei-Torrent
     Unknown\s(?:
         BN            | # Baidu (BN) [Dead?]
         FG            | # FlashGet (FG)
