@@ -43,4 +43,4 @@
 }
 ```
 
-配置文件只支持`//`开头的注释，请拿 `config.default.json` 改。放到在工作目录下，且将文件命名成 `config.json`。
+配置文件只支持`//`开头的注释，请拿 `config.default.json` 改。放到工作目录下，且将文件命名成 `config.json`。
