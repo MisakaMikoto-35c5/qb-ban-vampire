@@ -8,6 +8,7 @@ import re
 import json
 import time
 import logging
+import os
 
 REGX_XUNLEI = re.compile('''
 ^(?:
@@ -60,6 +61,14 @@ REGX_OTHERS = re.compile('''
 )
 ''', re.X)
 
+REGX_JSONC_COMMENT = re.compile(r"(^|,)\s*//.*$", re.MULTILINE)
+def _loadJsonc(file: str) -> str:
+    if not os.path.exists(file):
+        return {}
+    with open(file, encoding='utf8') as f:
+        content = REGX_JSONC_COMMENT.sub(r'\1', f.read())
+        return json.loads(content)
+
 class PeerInfo:
     IP = ''
     Progress = 0
@@ -92,27 +101,17 @@ class ClientInfo:
         self.Client = peer.Client
 
 class ConfigManager:
-    __DEFAULT_CONFIG__ = {
-        'interval_seconds': 5,
-        'ban_seconds': 3600,
-        'ban_xunlei': True,
-        'ban_player': True,
-        'ban_others': True,
-        'ban_without_ratio_check': True,
-        'all_client_ratio_check': True
-    }
+    __DEFAULT_CONFIG__ = {}
 
-    def __init__(self, file='./config.json'):
-        f = open(file)
-        content = f.read()
-        f.close()
-        self.config = json.loads(content)
+    def __init__(self, file='./config.json', default_file='./config.default.json'):
+        self.__DEFAULT_CONFIG__ = _loadJsonc(default_file)
+        self.config = _loadJsonc(file)
 
     def get(self, key):
         try:
             return self.config[key]
         except KeyError:
-            val = self.get_default()
+            val = self.get_default(key)
             self.config[key] = val
             return val
 
@@ -192,6 +191,8 @@ class VampireHunter:
     BAN_XUNLEI = True
     BAN_PLAYER = True
     BAN_OTHERS = True
+    # 屏蔽自定义的客户端
+    BAN_CUSTOMS = []
     # 识别到客户端直接屏蔽不管是否存在上传
     BAN_WITHOUT_RATIO_CHECK = True
     # 对不匹配上面屏蔽的客户端启用下载进度检查
@@ -237,6 +238,7 @@ class VampireHunter:
         self.BAN_XUNLEI = self.config.get('ban_xunlei')
         self.BAN_PLAYER = self.config.get('ban_player')
         self.BAN_OTHERS = self.config.get('ban_others')
+        self.BAN_CUSTOMS = [re.compile(it) for it in self.config.get('ban_customs')]
         self.BAN_WITHOUT_RATIO_CHECK = self.config.get('ban_without_ratio_check')
         self.ALL_CLIENT_RATIO_CHECK = self.config.get('all_client_ratio_check')
 
@@ -296,7 +298,7 @@ class VampireHunter:
     def do_once_banip(self):
         # 检查 UA
         def check_peer_client(peer):
-            client_string = peer.Client
+            client_string: str = peer.Client
             # 屏蔽迅雷
             if self.BAN_XUNLEI and REGX_XUNLEI.search(client_string):
                 return True
@@ -306,6 +308,10 @@ class VampireHunter:
             # 屏蔽野鸡客户端
             if self.BAN_OTHERS and REGX_OTHERS.search(client_string):
                 return True
+            # 屏蔽自定义的客户端
+            for custom in self.BAN_CUSTOMS:
+                if re.search(custom, client_string):
+                    return True
             return False
         
         # 检查下载行为
