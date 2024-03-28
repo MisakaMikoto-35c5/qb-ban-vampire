@@ -11,7 +11,7 @@
 
 ## 配置文件说明
 
-```json
+```jsonc
 {
     // API 地址，也可以说是 qBittorrent Web UI 界面的地址
     "api_prefix": "http://127.0.1.1:4514",
