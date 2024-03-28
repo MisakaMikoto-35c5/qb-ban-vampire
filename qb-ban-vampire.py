@@ -121,6 +121,10 @@ class ConfigManager:
         except:
             return None
 
+class ResponseStatusCodeException(Exception):
+    def __init__(self, code: int) -> None:
+        self.code = code
+
 class QbTorrentPeersInfo:
 
     ACTIVE_TORRENTS_ONLY = True
@@ -137,10 +141,13 @@ class QbTorrentPeersInfo:
         ).json()
     
     def get_peers_by_hash(self):
-        torrents = self.SESSION.get(
+        resp: requests.Response = self.SESSION.get(
             f'{self.API_FULL}/torrents/info',
             auth=self.BASIC_AUTH
-        ).json()
+        )
+        if resp.status_code != 200:
+            raise ResponseStatusCodeException(resp.status_code)
+        torrents = resp.json()
         converted_torrents = {}
         for torrent in torrents:
             if self.ACTIVE_TORRENTS_ONLY and torrent['state'] not in ['uploading', 'downloading']:
@@ -396,5 +403,11 @@ class VampireHunter:
 
 
 if __name__ == '__main__':
-    hunter = VampireHunter()
-    hunter.start()
+    while True:
+        try:
+            hunter = VampireHunter()
+            hunter.start()
+            break
+        except ResponseStatusCodeException as e:
+            logging.error(f'Response status code error: {e.code}, wait 3 second to retry.')
+            time.sleep(3)
