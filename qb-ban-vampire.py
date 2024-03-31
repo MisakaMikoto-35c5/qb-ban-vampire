@@ -78,11 +78,7 @@ class PeerInfo:
     Client = ''
 
     def __init__(self, peer, torrent):
-        def parse_ip(ip):
-            if ip.startswith('::ffff:'):
-                ip = ip[7:]
-            return ip
-        self.IP = parse_ip(peer['ip'])
+        self.IP = peer['ip']
         self.Progress = peer['progress']
         self.Uploaded = peer['uploaded']
         self.Downloaded = peer['downloaded']
