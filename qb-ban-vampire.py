@@ -213,6 +213,7 @@ class VampireHunter:
         self.load_config()
         self.API_FULL = f'{self.API_PREFIX}{self.API_SUFFIX}'
         self.__peers_info = QbTorrentPeersInfo(self.API_FULL, self.SESSION, self.get_basicauth())
+        self.prev_ips = ''
 
     def login(self):
         login_status = self.SESSION.post(
@@ -264,16 +265,18 @@ class VampireHunter:
                 del self.__banned_ips[key]
                 continue
             ips += key + '\n'
-        self.SESSION.post(
-            f'{self.API_FULL}/app/setPreferences',
-            auth=self.get_basicauth(),
-            data={
-                'json': json.dumps({
-                    'banned_IPs': ips
-                })
-            }
-        )
-    
+        if self.prev_ips != ips:
+            self.SESSION.post(
+                f'{self.API_FULL}/app/setPreferences',
+                auth=self.get_basicauth(),
+                data={
+                    'json': json.dumps({
+                        'banned_IPs': ips
+                    })
+                }
+            )
+            self.prev_ips = ips
+
     def banip(self, ip):
         self.__banned_ips[ip] = {
             'expires': time.time() + self.DEFAULT_BAN_SECONDS
