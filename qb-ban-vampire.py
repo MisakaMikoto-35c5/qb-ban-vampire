@@ -203,6 +203,8 @@ class VampireHunter:
 
     __client_behavior_cache__ = {}
     __banned_ips = {}
+    __has_new_banned_ip__ = False
+    __ip_expired_time__ = []
     logging.basicConfig(level=logging.INFO)
 
     def __init__(self):
@@ -256,26 +258,37 @@ class VampireHunter:
         ips = ''
         now = time.time()
         tmp_banned_ips = self.__banned_ips.copy()
+        if self.__ip_expired_time__[0] < now:
+            self.__ip_expired_time__.pop(0)
+        elif self.__has_new_banned_ip__:
+            self.__has_new_banned_ip__ = False
+        else:
+            return
         for key, value in tmp_banned_ips.items():
             if now > value['expires']:
                 del self.__banned_ips[key]
                 continue
             ips += key + '\n'
-        if self.prev_ips != ips:
-            self.SESSION.post(
-                f'{self.API_FULL}/app/setPreferences',
-                auth=self.get_basicauth(),
-                data={
-                    'json': json.dumps({
-                        'banned_IPs': ips
-                    })
-                }
-            )
-            self.prev_ips = ips
+        self.SESSION.post(
+            f'{self.API_FULL}/app/setPreferences',
+            auth=self.get_basicauth(),
+            data={
+                'json': json.dumps({
+                    'banned_IPs': ips
+                })
+            }
+        )
 
     def banip(self, ip):
+        expires = time.time() + self.DEFAULT_BAN_SECONDS
+        if len(self.__ip_expired_time__) == 0:
+            self.__ip_expired_time__.append(expires)
+        if self.__ip_expired_time__[-1] < expires:
+            self.__ip_expired_time__.append(expires)
+
+        self.__has_new_banned_ip__ = True
         self.__banned_ips[ip] = {
-            'expires': time.time() + self.DEFAULT_BAN_SECONDS
+            'expires': expires
         }
 
     def get_client_history_behavior(self, client_ip):
