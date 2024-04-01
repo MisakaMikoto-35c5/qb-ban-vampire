@@ -258,7 +258,7 @@ class VampireHunter:
         ips = ''
         now = time.time()
         tmp_banned_ips = self.__banned_ips.copy()
-        if self.__ip_expired_time__[0] < now:
+        if len(self.__ip_expired_time__) > 0 and self.__ip_expired_time__[0] < now:
             self.__ip_expired_time__.pop(0)
         elif self.__has_new_banned_ip__:
             self.__has_new_banned_ip__ = False
