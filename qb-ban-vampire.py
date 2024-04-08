@@ -248,6 +248,7 @@ class VampireHunter:
         self.BAN_CUSTOMS = [re.compile(it) for it in self.config.get('ban_customs')]
         self.BAN_WITHOUT_RATIO_CHECK = self.config.get('ban_without_ratio_check')
         self.ALL_CLIENT_RATIO_CHECK = self.config.get('all_client_ratio_check')
+        self.TORRENT_REMOVE_COUNT = self.config.get('torrent_remove_count')
 
     def get_basicauth(self):
         if self.BASICAUTH_ENABLED:
@@ -304,6 +305,7 @@ class VampireHunter:
         except KeyError:
             self.__client_behavior_cache__[client_ip] = {
                 'expires': time.time() + self.DEFAULT_BAN_SECONDS,
+                'torrent_remove_count': 0,
                 'initial': behavior,
             }
         self.__client_behavior_cache__[client_ip]['behavior'] = behavior
@@ -352,6 +354,16 @@ class VampireHunter:
                 #if current.Progress == 0 and current.Uploaded > 10000000:
                 #    logging.info(f'[{current.IP}:{current.Client}] Detected strange client, Current Progress: {current.Progress}, Uploaded: {current.Uploaded}.')
                 #    return True
+                if current.Progress == 0 and (initial.Progress != 0 or previous.Progress != 0):
+                    # 可能是删了种子重新下载
+                    if self.TORRENT_REMOVE_COUNT >= 0 and self.__client_behavior_cache__[current.IP]['torrent_remove_count'] > self.TORRENT_REMOVE_COUNT:
+                        logging.info(f'[{current.IP}:{current.Client}] Detected strange behavior: Client re-download torrent more than {self.TORRENT_REMOVE_COUNT} times.')
+                        return True
+                    else:
+                        self.__client_behavior_cache__[current.IP]['torrent_remove_count'] += 1
+                        self.__client_behavior_cache__[current.IP]['initial'] = current
+                        logging.info(f'[{current.IP}:{current.Client}] Detected strange behavior: Client re-download torrent.')
+                        return False
                 if (current.Progress - initial.Progress) <= 0 and (current.Uploaded - initial.Uploaded) > 10000000:
                     logging.info(f'[{current.IP}:{current.Client}] Detected strange client, Current Progress: {current.Progress}, Uploaded: {current.Uploaded}, Previous: Progress {previous.Progress}, Upload {previous.Uploaded}, Initial: Progress {initial.Progress}, Upload {initial.Uploaded}.')
                     return True
@@ -369,6 +381,7 @@ class VampireHunter:
             if self.BAN_WITHOUT_RATIO_CHECK and is_target_client:
                 logging.info(f'[{ip}:{peer.Client}] Banned cause by client software.')
                 self.banip(ip)
+                continue
             # 其他客户端是否检查下载进度
             if not self.ALL_CLIENT_RATIO_CHECK and not is_target_client:
                 continue

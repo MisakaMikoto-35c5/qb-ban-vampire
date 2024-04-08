@@ -34,12 +34,16 @@
     "ban_player": true,
     // 是否封锁其他的野鸡客户端
     "ban_others": true,
-    // 封锁其他自定义的客户端名, 使用正则表达式进行匹配, 例如: "^Taipie", 表示匹配Taipie开头的客户端
-    "ban_customs": [],
+    // 封锁其他自定义的客户端名, 使用正则表达式进行匹配, 例如: "^dt/torrent", 表示匹配 dt/torrent 开头的客户端
+    "ban_customs": [
+        "^dt/torrent"
+    ],
     // 封锁上面四个种类的野鸡客户端的时候，是否不检查行为直接封锁
     "ban_without_ratio_check": true,
     // 是否对其他所有客户端都进行行为检测
-    "all_client_ratio_check": true
+    "all_client_ratio_check": true,
+    // 允许客户端删除重下多少次任务（全部种子累计），超过这个次数则封锁，如果这个数字小于 0 则代表禁用这个功能
+    "torrent_remove_count": -1
 }
 ```
 
