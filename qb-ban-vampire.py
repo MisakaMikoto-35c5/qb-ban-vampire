@@ -361,7 +361,7 @@ class VampireHunter:
                         return True
                     else:
                         self.__client_behavior_cache__[current.IP]['torrent_remove_count'] += 1
-                        self.__client_behavior_cache__[current.IP]['initial'] = current
+                        self.__client_behavior_cache__[current.IP]['initial'] = current_behavior
                         logging.info(f'[{current.IP}:{current.Client}] Detected strange behavior: Client re-download torrent.')
                         return False
                 if (current.Progress - initial.Progress) <= 0 and (current.Uploaded - initial.Uploaded) > 10000000:
