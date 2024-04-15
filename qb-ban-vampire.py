@@ -50,10 +50,8 @@ REGX_OTHERS = re.compile('''
     [Qq]{2}           | # QQ (QD) [Dead?]
     [Tt]uo            | # TuoTu (TT) [Dead?]
     [Tt]uo            | # TuoTu (TT) [Dead?]
-    dt/torrent/       | # Network Traffic Consumer
-    DT\s(\d\.)+\d     | # Network Traffic Consumer
-    hp/torrent/       | # Network Traffic Consumer (Not 100% confidence, but used by SPAM IP range)
-    HP\s(\d\.)+\d     | # Network Traffic Consumer (Not 100% confidence, but used by SPAM IP range)
+    (dt|hp)/torrent/  | # Network Traffic Consumer
+    (DT|HP|GT)\s(\d\.)+\d     | # Network Traffic Consumer
     Unknown\s(?:
         BN            | # Baidu (BN) [Dead?]
         FG            | # FlashGet (FG)
