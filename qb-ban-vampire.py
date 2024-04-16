@@ -249,6 +249,7 @@ class VampireHunter:
         self.BAN_WITHOUT_RATIO_CHECK = self.config.get('ban_without_ratio_check')
         self.ALL_CLIENT_RATIO_CHECK = self.config.get('all_client_ratio_check')
         self.TORRENT_REMOVE_COUNT = self.config.get('torrent_remove_count')
+        self.HONEYPOT = self.config.get('honeypot')
 
     def get_basicauth(self):
         if self.BASICAUTH_ENABLED:
@@ -281,7 +282,9 @@ class VampireHunter:
             }
         )
 
-    def banip(self, ip):
+    def banip(self, ip, seconds = None):
+        if seconds == None:
+            seconds = self.DEFAULT_BAN_SECONDS
         expires = time.time() + self.DEFAULT_BAN_SECONDS
         if len(self.__ip_expired_time__) == 0:
             self.__ip_expired_time__.append(expires)
@@ -369,12 +372,27 @@ class VampireHunter:
                     return True
             return False
 
+        def check_in_honeypot(torrents):
+            if not self.HONEYPOT['enabled']:
+                return False
+            print(torrents)
+            try:
+                torrents[self.HONEYPOT['torrent_hash']]
+                return True
+            except KeyError:
+                return False
+
         peers = self.__peers_info.get_peers_by_ip()
         peers_count = 0
         for ip, peer in peers.items():
             peers_count += 1
             # 不检测没有 UA 的 peer，可能是连接没建立
             if peer.Client == '':
+                continue
+            # 客户端在下载一个蜜罐种子
+            if check_in_honeypot(peer.Torrents):
+                logging.info(f'[{ip}:{peer.Client}] Banned cause by client downloading a honeypot torrent.')
+                self.banip(ip, self.HONEYPOT['ban_seconds'])
                 continue
             is_target_client = check_peer_client(peer)
             # 不检查分享率及下载进度直接屏蔽
