@@ -232,6 +232,8 @@ class VampireHunter:
         logging.basicConfig(
             filename=self.config.get('logfile'),
             filemode='a',
+            format='%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S',
             level=logging.INFO
         )
         self.API_PREFIX = self.config.get('api_prefix')
