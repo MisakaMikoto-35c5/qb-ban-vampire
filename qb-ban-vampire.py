@@ -366,7 +366,7 @@ class VampireHunter:
                 #    return True
                 if current.Progress == 0 and (initial.Progress != 0 or previous.Progress != 0):
                     # 可能是删了种子重新下载
-                    if self.TORRENT_REMOVE_COUNT >= 0 and self.__client_behavior_cache__[current.IP]['torrent_remove_count'] > self.TORRENT_REMOVE_COUNT:
+                    if self.TORRENT_REMOVE_COUNT >= 0 and self.__client_behavior_cache__[current.IP]['torrent_remove_count'] >= self.TORRENT_REMOVE_COUNT:
                         logging.info(f'[{current.IP}:{current.Client}] Detected strange behavior: Client re-download torrent more than {self.TORRENT_REMOVE_COUNT} times.')
                         return True
                     else:
