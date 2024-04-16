@@ -206,7 +206,6 @@ class VampireHunter:
     __banned_ips = {}
     __has_new_banned_ip__ = False
     __ip_expired_time__ = []
-    logging.basicConfig(level=logging.INFO)
 
     def __init__(self):
         self.load_config()
@@ -230,6 +229,11 @@ class VampireHunter:
 
     def load_config(self):
         self.config = ConfigManager()
+        logging.basicConfig(
+            filename=self.config.get('logfile'),
+            filemode='a',
+            level=logging.INFO
+        )
         self.API_PREFIX = self.config.get('api_prefix')
         self.API_USERNAME = self.config.get('api_username')
         self.API_PASSWORD = self.config.get('api_password')
@@ -250,13 +254,6 @@ class VampireHunter:
         self.ALL_CLIENT_RATIO_CHECK = self.config.get('all_client_ratio_check')
         self.TORRENT_REMOVE_COUNT = self.config.get('torrent_remove_count')
         self.HONEYPOT = self.config.get('honeypot')
-        logging.basicConfig(
-            filename=self.config.get('logfile'),
-            filemode='a',
-            format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
-            datefmt='%H:%M:%S',
-            level=logging.INFO
-        )
 
     def get_basicauth(self):
         if self.BASICAUTH_ENABLED:
