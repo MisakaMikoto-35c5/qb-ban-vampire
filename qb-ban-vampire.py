@@ -250,6 +250,7 @@ class VampireHunter:
         self.ALL_CLIENT_RATIO_CHECK = self.config.get('all_client_ratio_check')
         self.TORRENT_REMOVE_COUNT = self.config.get('torrent_remove_count')
         self.HONEYPOT = self.config.get('honeypot')
+        logging.basicConfig(filename=self.config.get('logfile'))
 
     def get_basicauth(self):
         if self.BASICAUTH_ENABLED:
