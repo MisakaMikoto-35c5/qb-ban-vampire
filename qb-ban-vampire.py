@@ -375,7 +375,6 @@ class VampireHunter:
         def check_in_honeypot(torrents):
             if not self.HONEYPOT['enabled']:
                 return False
-            print(torrents)
             try:
                 torrents[self.HONEYPOT['torrent_hash']]
                 return True
