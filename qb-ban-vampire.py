@@ -77,6 +77,7 @@ class PeerInfo:
     Downloaded = 0
     TorrentSize = 0
     Client = ''
+    Flags = ''
 
     def __init__(self, peer, torrent):
         self.IP = peer['ip']
@@ -85,6 +86,8 @@ class PeerInfo:
         self.Downloaded = peer['downloaded']
         self.Client = peer['client']
         self.TorrentSize = torrent['size']
+        self.Flags = peer['flags']
+
 
 class ClientInfo:
     IsBanned = False
@@ -359,6 +362,8 @@ class VampireHunter:
                     continue
                 if current.Uploaded == 0:
                     continue
+                if 'U' not in current.Flags:
+                    continue
                 logging.debug(f'[{current.IP}:{current.Client}] Current: Upload {current.Uploaded}, Progress {current.Progress}, Previous: Upload {previous.Uploaded}, Progress {previous.Progress}, Initial: Upload {initial.Uploaded}, Progress {initial.Progress}')
                 #if current.Progress == 0 and current.Uploaded > 10000000:
                 #    logging.info(f'[{current.IP}:{current.Client}] Detected strange client, Current Progress: {current.Progress}, Uploaded: {current.Uploaded}.')
@@ -372,7 +377,7 @@ class VampireHunter:
                         self.__client_behavior_cache__[current.IP]['torrent_remove_count'] += 1
                         self.__client_behavior_cache__[current.IP]['initial'] = current_behavior
                         logging.info(f'[{current.IP}:{current.Client}] Detected strange behavior: Client re-download torrent.')
-                        return False
+                        continue
                 if (current.Progress - initial.Progress) <= 0 and (current.Uploaded - initial.Uploaded) > 10000000:
                     logging.info(f'[{current.IP}:{current.Client}] Detected strange client, Current Progress: {current.Progress}, Uploaded: {current.Uploaded}, Previous: Progress {previous.Progress}, Upload {previous.Uploaded}, Initial: Progress {initial.Progress}, Upload {initial.Uploaded}.')
                     return True
