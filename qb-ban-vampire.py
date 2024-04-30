@@ -103,7 +103,7 @@ class ClientInfo:
 class ConfigManager:
     __DEFAULT_CONFIG__ = {}
 
-    def __init__(self, file='./config.json', default_file='./config.default.json'):
+    def __init__(self, file='./config.json', default_file='./config.default.jsonc'):
         self.__DEFAULT_CONFIG__ = _loadJsonc(default_file)
         self.config = _loadJsonc(file)
 

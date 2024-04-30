@@ -1,4 +1,9 @@
+// 默认配置文件
+//
+// 为了让依赖尽量简化, 并没有引入解析jsonc的库, 而是使用简单的正则匹配来将jsonc转换成json, 
+// 故该配置文件只支持`//`开头的单行注释
 {
+    // 日志文件, 设为`""`不写日志
     "logfile": "vampire.log",
     // API 地址，也可以说是 qBittorrent Web UI 界面的地址
     "api_prefix": "http://127.0.1.1:4514",
@@ -29,7 +34,7 @@
     "all_client_ratio_check": true,
     // 允许客户端删除重下多少次任务（全部种子累计），超过这个次数则封锁，如果这个数字小于 0 则代表禁用这个功能
     "torrent_remove_count": 0,
-    // 蜜罐种子
+    // 蜜罐种子, 直接屏蔽下载指定hash的种子的客户端
     "honeypot": {
         "enabled": false,
         "torrent_hash": "",
