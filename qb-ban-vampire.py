@@ -383,14 +383,10 @@ class VampireHunter:
                     return True
             return False
 
-        def check_in_honeypot(torrents):
+        def check_in_honeypot(torrents: dict):
             if not self.HONEYPOT['enabled']:
                 return False
-            try:
-                torrents[self.HONEYPOT['torrent_hash']]
-                return True
-            except KeyError:
-                return False
+            return self.HONEYPOT['torrent_hash'] in torrents
 
         peers = self.__peers_info.get_peers_by_ip()
         peers_count = 0
