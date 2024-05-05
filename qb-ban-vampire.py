@@ -103,7 +103,7 @@ class ClientInfo:
 class ConfigManager:
     __DEFAULT_CONFIG__ = {}
 
-    def __init__(self, file='./config.json', default_file='./config.default.json'):
+    def __init__(self, file='./config.json', default_file='./config.default.jsonc'):
         self.__DEFAULT_CONFIG__ = _loadJsonc(default_file)
         self.config = _loadJsonc(file)
 
@@ -235,7 +235,7 @@ class VampireHunter:
         logging.basicConfig(
             filename=self.config.get('logfile'),
             filemode='a',
-            format='%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
+            format='%(asctime)s.%(msecs)03d %(levelname)s %(funcName)s: %(message)s',
             datefmt='%Y-%m-%d %H:%M:%S',
             level=logging.INFO
         )
@@ -383,14 +383,10 @@ class VampireHunter:
                     return True
             return False
 
-        def check_in_honeypot(torrents):
+        def check_in_honeypot(torrents: dict):
             if not self.HONEYPOT['enabled']:
                 return False
-            try:
-                torrents[self.HONEYPOT['torrent_hash']]
-                return True
-            except KeyError:
-                return False
+            return self.HONEYPOT['torrent_hash'] in torrents
 
         peers = self.__peers_info.get_peers_by_ip()
         peers_count = 0
