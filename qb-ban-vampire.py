@@ -104,8 +104,9 @@ class ConfigManager:
     __DEFAULT_CONFIG__ = {}
 
     def __init__(self, file='./config.json', default_file='./config.default.jsonc'):
-        self.__DEFAULT_CONFIG__ = _loadJsonc(default_file)
-        self.config = _loadJsonc(file)
+        script_path = os.path.dirname(os.path.abspath(__file__))
+        self.__DEFAULT_CONFIG__ = _loadJsonc(os.path.join(script_path, default_file))
+        self.config = _loadJsonc(os.path.join(script_path, file))
 
     def get(self, key):
         try:
