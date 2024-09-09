@@ -467,6 +467,6 @@ if __name__ == '__main__':
             logging.error(f'Response status code error: {e.code}, wait 3 second to retry.')
             time.sleep(3)
         except js.JSONDecodeError as e:
-            logging.error(f'Other error: {e}, wait 3 second to retry.')
+            logging.error(f'Other error: {repr(e)}, wait 3 second to retry.')
             time.sleep(3)
 
