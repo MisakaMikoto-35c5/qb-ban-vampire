@@ -9,6 +9,10 @@ import json
 import time
 import logging
 import os
+try:
+    import simplejson as js # type: ignore
+except ImportError:
+    import json as js
 
 REGX_XUNLEI = re.compile('''
 ^(?:
@@ -462,3 +466,7 @@ if __name__ == '__main__':
         except ResponseStatusCodeException as e:
             logging.error(f'Response status code error: {e.code}, wait 3 second to retry.')
             time.sleep(3)
+        except js.JSONDecodeError as e:
+            logging.error(f'Other error: {e}, wait 3 second to retry.')
+            time.sleep(3)
+
