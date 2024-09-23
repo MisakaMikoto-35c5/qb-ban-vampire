@@ -10,9 +10,11 @@ import time
 import logging
 import os
 try:
-    import simplejson as js # type: ignore
+    import simplejson as js  # type: ignore
 except ImportError:
     import json as js
+
+SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
 
 REGX_XUNLEI = re.compile('''
 ^(?:
@@ -25,7 +27,7 @@ REGX_XUNLEI = re.compile('''
         sd|xl
     )
 )
-''', re.I|re.X)
+''', re.I | re.X)
 REGX_PLAYER = re.compile('''
 ^(?:
     dan               | # DanDan (DL)
@@ -67,12 +69,15 @@ REGX_OTHERS = re.compile('''
 ''', re.X)
 
 REGX_JSONC_COMMENT = re.compile(r"(^|,)\s*//.*$", re.MULTILINE)
-def _loadJsonc(file: str) -> str:
+
+
+def _loadJsonc(file: str) -> dict:
     if not os.path.exists(file):
         return {}
     with open(file, encoding='utf8') as f:
         content = REGX_JSONC_COMMENT.sub(r'\1', f.read())
         return json.loads(content)
+
 
 class PeerInfo:
     IP = ''
@@ -104,13 +109,13 @@ class ClientInfo:
         self.IP = peer.IP
         self.Client = peer.Client
 
+
 class ConfigManager:
     __DEFAULT_CONFIG__ = {}
 
     def __init__(self, file='./config.json', default_file='./config.default.jsonc'):
-        script_path = os.path.dirname(os.path.abspath(__file__))
-        self.__DEFAULT_CONFIG__ = _loadJsonc(os.path.join(script_path, default_file))
-        self.config = _loadJsonc(os.path.join(script_path, file))
+        self.__DEFAULT_CONFIG__ = _loadJsonc(os.path.join(SCRIPT_PATH, default_file))
+        self.config = _loadJsonc(os.path.join(SCRIPT_PATH, file))
 
     def get(self, key):
         try:
@@ -126,25 +131,27 @@ class ConfigManager:
         except:
             return None
 
+
 class ResponseStatusCodeException(Exception):
     def __init__(self, code: int) -> None:
         self.code = code
+
 
 class QbTorrentPeersInfo:
 
     ACTIVE_TORRENTS_ONLY = True
 
-    def __init__(self, api_url, requests_session, basicauth = None):
+    def __init__(self, api_url, requests_session, basicauth=None):
         self.SESSION = requests_session
         self.API_FULL = api_url
         self.BASIC_AUTH = basicauth
-    
+
     def get_peers(self, mission_hash):
         return self.SESSION.get(
             f'{self.API_FULL}/sync/torrentPeers?hash={mission_hash}',
             auth=self.BASIC_AUTH
         ).json()
-    
+
     def get_peers_by_hash(self):
         resp: requests.Response = self.SESSION.get(
             f'{self.API_FULL}/torrents/info',
@@ -163,11 +170,12 @@ class QbTorrentPeersInfo:
                 converted_peers.append(PeerInfo(peer, torrent))
             converted_torrents[torrent['hash']] = converted_peers
         return converted_torrents
-    
+
     def get_peers_by_ip(self):
         peers_hash = self.get_peers_by_hash()
         peers_ip = {}
         peers_torrents = {}
+
         def make_sure_peer_is_created(peer):
             try:
                 peers_ip[peer.IP]
@@ -211,15 +219,23 @@ class VampireHunter:
     ALL_CLIENT_RATIO_CHECK = True
 
     __client_behavior_cache__ = {}
-    __banned_ips = {}
+    __state = _loadJsonc(os.path.join(SCRIPT_PATH, 'state.json'))
+    __banned_ips = __state.get('banned_ips', {})
     __has_new_banned_ip__ = False
-    __ip_expired_time__ = []
+    __ip_expired_time__ = __state.get('ip_expired_time', [])
+
+    @classmethod
+    def save_state(cls):
+        with open(os.path.join(SCRIPT_PATH, 'state.json'), encoding='utf8', mode='w') as f:
+            f.write(json.dumps({
+                'banned_ips': cls.__banned_ips,
+                'ip_expired_time': cls.__ip_expired_time__,
+            }, indent=4))
 
     def __init__(self):
         self.load_config()
         self.API_FULL = f'{self.API_PREFIX}{self.API_SUFFIX}'
         self.__peers_info = QbTorrentPeersInfo(self.API_FULL, self.SESSION, self.get_basicauth())
-        self.prev_ips = ''
 
     def login(self):
         login_status = self.SESSION.post(
@@ -270,7 +286,7 @@ class VampireHunter:
             return (self.BASICAUTH_USERNAME, self.BASICAUTH_PASSWORD)
         else:
             return None
-    
+
     def sumbit_banned_ips(self):
         ips = ''
         now = time.time()
@@ -296,7 +312,7 @@ class VampireHunter:
             }
         )
 
-    def banip(self, ip, seconds = None):
+    def banip(self, ip, seconds=None):
         if seconds == None:
             seconds = self.DEFAULT_BAN_SECONDS
         expires = time.time() + self.DEFAULT_BAN_SECONDS
@@ -333,7 +349,7 @@ class VampireHunter:
         for key, value in tmp.items():
             if now > value['expires']:
                 del self.__client_behavior_cache__[key]
-    
+
     def do_once_banip(self):
         # 检查 UA
         def check_peer_client(peer):
@@ -352,7 +368,7 @@ class VampireHunter:
                 if re.search(custom, client_string):
                     return True
             return False
-        
+
         # 检查下载行为
         def check_progress(previous_behavior, current_behavior):
             for torrent, previous in previous_behavior['behavior'].items():
@@ -370,7 +386,7 @@ class VampireHunter:
                 if 'U' not in current.Flags:
                     continue
                 logging.debug(f'[{current.IP}:{current.Client}] Current: Upload {current.Uploaded}, Progress {current.Progress}, Previous: Upload {previous.Uploaded}, Progress {previous.Progress}, Initial: Upload {initial.Uploaded}, Progress {initial.Progress}')
-                #if current.Progress == 0 and current.Uploaded > 10000000:
+                # if current.Progress == 0 and current.Uploaded > 10000000:
                 #    logging.info(f'[{current.IP}:{current.Client}] Detected strange client, Current Progress: {current.Progress}, Uploaded: {current.Uploaded}.')
                 #    return True
                 if current.Progress == 0 and (initial.Progress != 0 or previous.Progress != 0):
@@ -428,7 +444,7 @@ class VampireHunter:
         logging.debug(f'Round finished, checked {peers_count} peers.')
         self.sumbit_banned_ips()
         self.client_history_cleanup()
-    
+
     def start(self):
         fail_count = 0
         while True:
@@ -469,4 +485,5 @@ if __name__ == '__main__':
         except js.JSONDecodeError as e:
             logging.error(f'Other error: {repr(e)}, wait 3 second to retry.')
             time.sleep(3)
-
+        finally:
+            VampireHunter.save_state()
