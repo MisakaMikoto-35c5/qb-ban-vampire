@@ -58,6 +58,7 @@ REGX_OTHERS = re.compile('''
     [Tt]uo            | # TuoTu (TT) [Dead?]
     (dt|hp)/torrent/  | # Network Traffic Consumer
     (DT|HP|GT)\s(\d\.)+\d     | # Network Traffic Consumer
+    (Gopeed)\sdev     | # Network Traffic Consumer
     Unknown\s(?:
         BN            | # Baidu (BN) [Dead?]
         FG            | # FlashGet (FG)
