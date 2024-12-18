@@ -9,6 +9,7 @@ import json
 import time
 import logging
 import os
+import ipaddress
 try:
     import simplejson as js  # type: ignore
 except ImportError:
@@ -214,6 +215,8 @@ class VampireHunter:
     BAN_OTHERS = True
     # 屏蔽自定义的客户端
     BAN_CUSTOMS = []
+    # 屏蔽IP段
+    BAN_IP_NETWORKS = []
     # 识别到客户端直接屏蔽不管是否存在上传
     BAN_WITHOUT_RATIO_CHECK = True
     # 对不匹配上面屏蔽的客户端启用下载进度检查
@@ -277,6 +280,7 @@ class VampireHunter:
         self.BAN_PLAYER = self.config.get('ban_player')
         self.BAN_OTHERS = self.config.get('ban_others')
         self.BAN_CUSTOMS = [re.compile(it) for it in self.config.get('ban_customs')]
+        self.BAN_IP_NETWORKS = [ipaddress.ip_network(it) for it in self.config.get('ban_ip_networks')]
         self.BAN_WITHOUT_RATIO_CHECK = self.config.get('ban_without_ratio_check')
         self.ALL_CLIENT_RATIO_CHECK = self.config.get('all_client_ratio_check')
         self.TORRENT_REMOVE_COUNT = self.config.get('torrent_remove_count')
@@ -370,6 +374,13 @@ class VampireHunter:
                     return True
             return False
 
+        def check_ban_ip_address(ip_str):
+            ip = ipaddress.ip_address(ip_str)
+            for ip_network in self.BAN_IP_NETWORKS:
+                if ip in ip_network:
+                    return True
+            return False
+
         # 检查下载行为
         def check_progress(previous_behavior, current_behavior):
             for torrent, previous in previous_behavior['behavior'].items():
@@ -421,6 +432,11 @@ class VampireHunter:
             if check_in_honeypot(peer.Torrents):
                 logging.info(f'[{ip}:{peer.Client}] Banned cause by client downloading a honeypot torrent.')
                 self.banip(ip, self.HONEYPOT['ban_seconds'])
+                continue
+            # 检测IP段是否被屏蔽
+            if check_ban_ip_address(ip):
+                logging.info(f'[{ip}:{peer.Client}] Banned cause by ip belongs to a banned ip network.')
+                self.banip(ip)
                 continue
             is_target_client = check_peer_client(peer)
             # 不检查分享率及下载进度直接屏蔽
