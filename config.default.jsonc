@@ -5,6 +5,8 @@
 {
     // 日志文件, 设为`""`不写日志
     "logfile": "vampire.log",
+    // qBittorrent可执行文件路径，配置了则启动脚本时同时启动 qBittorrent，qBittorrent退出时脚本也退出
+    "qb_path": "",
     // API 地址，也可以说是 qBittorrent Web UI 界面的地址
     "api_prefix": "http://127.0.1.1:4514",
     // 进入 qBittorrent Web UI 的用户名

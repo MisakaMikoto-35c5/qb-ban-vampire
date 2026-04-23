@@ -10,6 +10,8 @@ import time
 import logging
 import os
 import ipaddress
+import subprocess
+import threading
 try:
     import simplejson as js  # type: ignore
 except ImportError:
@@ -17,7 +19,7 @@ except ImportError:
 
 SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
 
-REGX_XUNLEI = re.compile('''
+REGX_XUNLEI = re.compile(r'''
 ^(?:
     7\.|sd|xl|-XL|xun|
     unknown\s(?:
@@ -29,7 +31,7 @@ REGX_XUNLEI = re.compile('''
     )
 )
 ''', re.I | re.X)
-REGX_PLAYER = re.compile('''
+REGX_PLAYER = re.compile(r'''
 ^(?:
     dan               | # DanDan (DL)
     DLB|dlb           | # DLBT (DL)
@@ -49,7 +51,7 @@ REGX_PLAYER = re.compile('''
     )
 )
 ''', re.X)
-REGX_OTHERS = re.compile('''
+REGX_OTHERS = re.compile(r'''
 ^(?:
     caca              | # Cacaoweb
     [Ff]lash[Gg]      | # FlashGet (FG)
@@ -79,6 +81,18 @@ def _loadJsonc(file: str) -> dict:
     with open(file, encoding='utf8') as f:
         content = REGX_JSONC_COMMENT.sub(r'\1', f.read())
         return json.loads(content)
+
+
+def _is_qb_running():
+    if os.name == 'nt':
+        result = subprocess.run(
+            ['tasklist', '/FI', 'IMAGENAME eq qbittorrent.exe'],
+            capture_output=True, text=True, creationflags=subprocess.CREATE_NO_WINDOW, check=False
+        )
+        return 'qbittorrent.exe' in result.stdout
+    else:
+        result = subprocess.run(['pgrep', '-x', 'qbittorrent'], capture_output=True, check=False)
+        return result.returncode == 0
 
 
 class PeerInfo:
@@ -464,7 +478,7 @@ class VampireHunter:
 
     def start(self):
         fail_count = 0
-        while True:
+        while not exit_event.is_set():
             try:
                 login_result = self.login()
                 fail_count = 0
@@ -478,7 +492,7 @@ class VampireHunter:
                 break
             else:
                 return
-        while True:
+        while not exit_event.is_set():
             try:
                 self.do_once_banip()
                 fail_count = 0
@@ -490,8 +504,24 @@ class VampireHunter:
             time.sleep(self.INTERVAL_SECONDS)
 
 
+exit_event = threading.Event()
+
+
+def _auto_start_qb(path):
+    subprocess.run([path], check=False)
+    exit_event.set()
+
+
 if __name__ == '__main__':
-    while True:
+    config = ConfigManager()
+    qb_path = config.get('qb_path')
+    if qb_path:
+        if _is_qb_running():
+            logging.info('qBittorrent is already running.')
+        else:
+            threading.Thread(target=_auto_start_qb, args=(qb_path,), daemon=True).start()
+
+    while not exit_event.is_set():
         try:
             hunter = VampireHunter()
             hunter.start()
